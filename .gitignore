@@ -1,3 +1,4 @@
 .ipynb_checkpoints
 restaurant.csv
 test_sql.db
+__pycache__/*
