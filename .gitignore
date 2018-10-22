@@ -3,3 +3,4 @@ restaurant.csv
 test_sql.db
 __pycache__/*
 .pytest_cache/*
+geckodriver.log
