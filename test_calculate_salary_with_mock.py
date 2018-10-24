@@ -104,6 +104,16 @@ class TestSalary(unittest.TestCase):
 
         self.mock_bonus.assert_called()
 
+    @mock.patch('calculate_salary.ThirdPartyBonusRestApi', spec=True)
+    def test_calculate_salary_class(self, MockRest):
+        # mock_rest = MOckRest.return_value
+        mock_rest = MockRest()
+        mock_rest.bonus_price.return_value = 1
+
+        s = calculate_salary.Salary(year=2017)
+        self.assertEqual(s.calculate_salary(), 101)
+        mock_rest.bonus_price.assert_called()
+
 
 if __name__ == "__main__":
     unittest.main()
