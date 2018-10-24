@@ -61,6 +61,49 @@ class TestSalary(unittest.TestCase):
         self.assertEqual(salary_price, 101)
         self.mock_bonus.assert_called()
 
+    def test_calculate_salary_patch_side_effect(self):
+        # def f(year):
+        #     return 1
+        self.mock_bonus.side_effect = lambda year: 1
+        s = calculate_salary.Salary(year=2017)
+        salary_price = s.calculate_salary()
+        self.assertEqual(salary_price, 101)
+        self.mock_bonus.assert_called()
+
+    def test_calculate_salary_patch_side_effect_refused(self):
+        # def f(year):
+        #     return 1
+        self.mock_bonus.side_effect = ConnectionRefusedError
+        s = calculate_salary.Salary(year=2017)
+        salary_price = s.calculate_salary()
+        self.assertEqual(salary_price, 100)
+        self.mock_bonus.assert_called()
+
+    def test_calculate_salary_patch_side_effect_list(self):
+        self.mock_bonus.side_effect = [
+            1,
+            2,
+            3,
+            ValueError('Bankrupt!!!')
+        ]
+        s = calculate_salary.Salary(year=2017)
+        salary_price = s.calculate_salary()
+        self.assertEqual(salary_price, 101)
+
+        s = calculate_salary.Salary(year=2018)
+        salary_price = s.calculate_salary()
+        self.assertEqual(salary_price, 102)
+
+        s = calculate_salary.Salary(year=2019)
+        salary_price = s.calculate_salary()
+        self.assertEqual(salary_price, 103)
+
+        s = calculate_salary.Salary(year=200)
+        with self.assertRaises(ValueError):
+            s.calculate_salary()
+
+        self.mock_bonus.assert_called()
+
 
 if __name__ == "__main__":
     unittest.main()
