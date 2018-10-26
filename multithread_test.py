@@ -45,6 +45,24 @@ def worker5(d, lock):
             d['x'] = i + 1
     logging.debug('end')
 
+def worker6(semaphore):
+    with semaphore:
+        logging.debug('start')
+        time.sleep(5)
+        logging.debug('end')
+
+def worker7(semaphore):
+    with semaphore:
+        logging.debug('start')
+        time.sleep(5)
+        logging.debug('end')
+
+def worker8(semaphore):
+    with semaphore:
+        logging.debug('start')
+        time.sleep(5)
+        logging.debug('end')
+
 def counter():
     i = 1
     while True:
@@ -54,6 +72,9 @@ def counter():
 if __name__ == '__main__':
 
     i  = counter()
+
+    print('\n**** 1. test two threads ******\n')
+
     t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker1)
     t2 = threading.Thread(
         name='thread{}'.format(i.__next__()),
@@ -67,8 +88,7 @@ if __name__ == '__main__':
     t1.join()
     t2.join()
 
-    print('\n**********\n')
-    # Using Daemon
+    print('\n**** 2. thread with for-loop and daemon ******\n')
     threads = []
     for _ in range(5):
         t = threading.Thread(
@@ -81,8 +101,7 @@ if __name__ == '__main__':
     for thread in threads:
         thread.join()
 
-    print('\n**********\n')
-    # Using Daemon and Threading Enumerate
+    print('\n***** 3. Using Daemon and Threading Enumerate *****\n')
     for _ in range(5):
         t = threading.Thread(
             name='thread{}'.format(i.__next__()),
@@ -96,15 +115,13 @@ if __name__ == '__main__':
             continue
         thread.join()
 
-    print('\n**********\n')
-    # Using Threading Timer
+    print('\n***** 4. Using Threading Timer *****\n')
     t = threading.Timer(3, worker2, args=(100,), kwargs={'y': 200})
     t.setName('thread{}'.format(i.__next__()))
     t.start()
     t.join()
 
-    print('\n**********\n')
-    # Lock thread so that different thread won't interrupt
+    print('\n***** 5. Lock thread so that different thread won\'t interrupt *****\n')
     d = {'x': 0}
     lock = threading.Lock()
     t1 = threading.Thread(
@@ -122,8 +139,7 @@ if __name__ == '__main__':
     t1.join()
     t2.join()
 
-    print('\n**********\n')
-    # Lock thread to acquire lock within lock
+    print('\n***** 6. RLock thread to acquire a lock within a lock *****\n')
     d = {'x': 0}
     lock = threading.RLock()
     t1 = threading.Thread(
@@ -140,3 +156,17 @@ if __name__ == '__main__':
     t2.start()
     t1.join()
     t2.join()
+
+    print('\n***** 7. with semaphore to start 2 locked threads first *****\n')
+    d = {'x': 0}
+    semaphore = threading.Semaphore(2)
+    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker6, args=(semaphore,))
+    t2 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker7, args=(semaphore,))
+    t3 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker8, args=(semaphore,))
+
+    t1.start()
+    t2.start()
+    t3.start()
+    t1.join()
+    t2.join()
+    t3.join()
