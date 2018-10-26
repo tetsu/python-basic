@@ -64,17 +64,27 @@ def worker8(semaphore):
         time.sleep(2)
         logging.debug('end')
 
-def worker9(q):
+def worker9(queue):
     logging.debug('start')
-    q.put(100)
+    queue.put(100)
     time.sleep(3)
-    q.put(200)
+    queue.put(200)
     logging.debug('end')
 
-def worker10(q):
+def worker10(queue):
     logging.debug('start')
-    logging.debug(q.get())
-    logging.debug(q.get())
+    logging.debug(queue.get())
+    logging.debug(queue.get())
+    logging.debug('end')
+
+def worker11(queue):
+    logging.debug('start')
+    while True:
+        item = queue.get()
+        if item is None:
+            break;
+        logging.debug(item)
+        queue.task_done()
     logging.debug('end')
 
 def counter():
@@ -193,3 +203,32 @@ if __name__ == '__main__':
     t2.start()
     t1.join()
     t2.join()
+
+    print('\n***** 9. control thread with queue *****\n')
+    q = queue.Queue()
+    for index in range(10):
+        q.put(index)
+    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker11, args=(q,))
+
+    t1.start()
+    logging.debug('tasks are not done')
+    q.join()
+    logging.debug('tasks are done')
+    q.put(None)
+    t1.join()
+
+    print('\n***** 10. queue with simultaniously running threads *****\n')
+    q = queue.Queue()
+    for index in range(100):
+        q.put(index)
+    ts = []
+    for _ in range(3):
+        t = threading.Thread(name='thread{}'.format(i.__next__()), target=worker11, args=(q,))
+        t.start()
+        ts.append(t)
+    logging.debug('tasks are not done')
+    q.join()
+    logging.debug('tasks are done')
+    for _ in range(len(ts)):
+        q.put(None)
+    [t.join() for t in ts]
