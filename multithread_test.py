@@ -1,4 +1,5 @@
 import logging
+import queue
 import threading
 import time
 
@@ -48,20 +49,33 @@ def worker5(d, lock):
 def worker6(semaphore):
     with semaphore:
         logging.debug('start')
-        time.sleep(5)
+        time.sleep(2)
         logging.debug('end')
 
 def worker7(semaphore):
     with semaphore:
         logging.debug('start')
-        time.sleep(5)
+        time.sleep(2)
         logging.debug('end')
 
 def worker8(semaphore):
     with semaphore:
         logging.debug('start')
-        time.sleep(5)
+        time.sleep(2)
         logging.debug('end')
+
+def worker9(q):
+    logging.debug('start')
+    q.put(100)
+    time.sleep(3)
+    q.put(200)
+    logging.debug('end')
+
+def worker10(q):
+    logging.debug('start')
+    logging.debug(q.get())
+    logging.debug(q.get())
+    logging.debug('end')
 
 def counter():
     i = 1
@@ -158,7 +172,6 @@ if __name__ == '__main__':
     t2.join()
 
     print('\n***** 7. with semaphore to start 2 locked threads first *****\n')
-    d = {'x': 0}
     semaphore = threading.Semaphore(2)
     t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker6, args=(semaphore,))
     t2 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker7, args=(semaphore,))
@@ -170,3 +183,13 @@ if __name__ == '__main__':
     t1.join()
     t2.join()
     t3.join()
+
+    print('\n***** 8. control thread with queue *****\n')
+    q = queue.Queue()
+    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker9, args=(q,))
+    t2 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker10, args=(q,))
+
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
