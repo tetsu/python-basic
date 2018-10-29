@@ -87,6 +87,23 @@ def worker11(queue):
         queue.task_done()
     logging.debug('end')
 
+def worker11_1(event):
+    event.wait() # wait until event starts
+    logging.debug('start')
+    time.sleep(2)
+    logging.debug('end')
+
+def worker11_2(event):
+    event.wait() # wait until event starts
+    logging.debug('start')
+    time.sleep(2)
+    logging.debug('end')
+
+def worker11_3(event):
+    logging.debug('start')
+    logging.debug('end')
+    event.set() # event starts here
+
 def counter():
     i = 1
     while True:
@@ -99,9 +116,9 @@ if __name__ == '__main__':
 
     print('\n**** 1. test two threads ******\n')
 
-    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker1)
+    t1 = threading.Thread(name='thread1_1', target=worker1)
     t2 = threading.Thread(
-        name='thread{}'.format(i.__next__()),
+        name='thread1_2',
         target=worker2,
         args=(100, ),
         kwargs={'y': 200}
@@ -116,7 +133,7 @@ if __name__ == '__main__':
     threads = []
     for _ in range(5):
         t = threading.Thread(
-            name='thread{}'.format(i.__next__()),
+            name='thread2',
             target=worker1
         )
         t.setDaemon(True)
@@ -126,9 +143,9 @@ if __name__ == '__main__':
         thread.join()
 
     print('\n***** 3. Using Daemon and Threading Enumerate *****\n')
-    for _ in range(5):
+    for index, _ in enumerate(range(5)):
         t = threading.Thread(
-            name='thread{}'.format(i.__next__()),
+            name='thread3_{}'.format(index + 1),
             target=worker1
         )
         t.setDaemon(True)
@@ -141,7 +158,7 @@ if __name__ == '__main__':
 
     print('\n***** 4. Using Threading Timer *****\n')
     t = threading.Timer(3, worker2, args=(100,), kwargs={'y': 200})
-    t.setName('thread{}'.format(i.__next__()))
+    t.setName('thread4')
     t.start()
     t.join()
 
@@ -149,12 +166,12 @@ if __name__ == '__main__':
     d = {'x': 0}
     lock = threading.Lock()
     t1 = threading.Thread(
-        name='thread{}'.format(i.__next__()),
+        name='thread5_1',
         target=worker3,
         args=(d, lock)
     )
     t2 = threading.Thread(
-        name='thread{}'.format(i.__next__()),
+        name='thread5_2',
         target=worker4,
         args=(d, lock)
     )
@@ -167,12 +184,12 @@ if __name__ == '__main__':
     d = {'x': 0}
     lock = threading.RLock()
     t1 = threading.Thread(
-        name='thread{}'.format(i.__next__()),
+        name='thread6_1',
         target=worker3,
         args=(d, lock)
     )
     t2 = threading.Thread(
-        name='thread{}'.format(i.__next__()),
+        name='thread6_2',
         target=worker5,
         args=(d, lock)
     )
@@ -183,9 +200,9 @@ if __name__ == '__main__':
 
     print('\n***** 7. with semaphore to start 2 locked threads first *****\n')
     semaphore = threading.Semaphore(2)
-    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker6, args=(semaphore,))
-    t2 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker7, args=(semaphore,))
-    t3 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker8, args=(semaphore,))
+    t1 = threading.Thread(name='thread7_1', target=worker6, args=(semaphore,))
+    t2 = threading.Thread(name='thread7_2', target=worker7, args=(semaphore,))
+    t3 = threading.Thread(name='thread7_3', target=worker8, args=(semaphore,))
 
     t1.start()
     t2.start()
@@ -196,8 +213,8 @@ if __name__ == '__main__':
 
     print('\n***** 8. control thread with queue *****\n')
     q = queue.Queue()
-    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker9, args=(q,))
-    t2 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker10, args=(q,))
+    t1 = threading.Thread(name='thread8_1', target=worker9, args=(q,))
+    t2 = threading.Thread(name='thread8_2', target=worker10, args=(q,))
 
     t1.start()
     t2.start()
@@ -208,7 +225,7 @@ if __name__ == '__main__':
     q = queue.Queue()
     for index in range(10):
         q.put(index)
-    t1 = threading.Thread(name='thread{}'.format(i.__next__()), target=worker11, args=(q,))
+    t1 = threading.Thread(name='thread9_1', target=worker11, args=(q,))
 
     t1.start()
     logging.debug('tasks are not done')
@@ -222,8 +239,8 @@ if __name__ == '__main__':
     for index in range(100):
         q.put(index)
     ts = []
-    for _ in range(3):
-        t = threading.Thread(name='thread{}'.format(i.__next__()), target=worker11, args=(q,))
+    for index, _ in enumerate(range(3)):
+        t = threading.Thread(name='thread10_{}'.format(index + 1), target=worker11, args=(q,))
         t.start()
         ts.append(t)
     logging.debug('tasks are not done')
@@ -232,3 +249,27 @@ if __name__ == '__main__':
     for _ in range(len(ts)):
         q.put(None)
     [t.join() for t in ts]
+
+    print('\n***** 11. Using Event *****\n')
+    event = threading.Event()
+    t1 = threading.Thread(
+        name='thread11_1',
+        target=worker11_1,
+        args=(event,)
+    )
+    t2 = threading.Thread(
+        name='thread11_2',
+        target=worker11_2,
+        args=(event,)
+    )
+    t3 = threading.Thread(
+        name='thread11_3',
+        target=worker11_3,
+        args=(event,)
+    )
+    t1.start()
+    t2.start()
+    t3.start()
+    t1.join()
+    t2.join()
+    t3.join()
